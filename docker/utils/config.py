@@ -2,10 +2,8 @@ import json
 import logging
 import os
 
-from ..constants import IS_WINDOWS_PLATFORM
+from ..constants import IS_WINDOWS_PLATFORM, DOCKER_CONFIG_FILENAME, LEGACY_DOCKER_CONFIG_FILENAME
 
-DOCKER_CONFIG_FILENAME = os.path.join('.docker', 'config.json')
-LEGACY_DOCKER_CONFIG_FILENAME = '.dockercfg'
 
 log = logging.getLogger(__name__)
 

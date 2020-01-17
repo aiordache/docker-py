@@ -136,15 +136,15 @@ class APIClient(
         num_pools = num_pools or DEFAULT_NUM_POOLS_SSH if \
             base_url.startswith('ssh://') else DEFAULT_NUM_POOLS
 
-        if base_url.startswith('http+unix://'):
+        if base_url.startswith('unix://'):
             self._custom_adapter = UnixHTTPAdapter(
                 base_url, timeout, pool_connections=num_pools
             )
-            self.mount('http+docker://', self._custom_adapter)
+            self.mount('docker://', self._custom_adapter)
             self._unmount('http://', 'https://')
             # host part of URL should be unused, but is resolved by requests
             # module in proxy_bypass_macosx_sysconf()
-            self.base_url = 'http+docker://localhost'
+            self.base_url = 'docker://localhost'
         elif base_url.startswith('npipe://'):
             if not IS_WINDOWS_PLATFORM:
                 raise DockerException(
@@ -158,8 +158,8 @@ class APIClient(
                 raise DockerException(
                     'Install pypiwin32 package to enable npipe:// support'
                 )
-            self.mount('http+docker://', self._custom_adapter)
-            self.base_url = 'http+docker://localnpipe'
+            self.mount('docker://', self._custom_adapter)
+            self.base_url = 'docker://localnpipe'
         elif base_url.startswith('ssh://'):
             try:
                 self._custom_adapter = SSHHTTPAdapter(
@@ -169,9 +169,9 @@ class APIClient(
                 raise DockerException(
                     'Install paramiko package to enable ssh:// support'
                 )
-            self.mount('http+docker://ssh', self._custom_adapter)
+            self.mount('docker://ssh', self._custom_adapter)
             self._unmount('http://', 'https://')
-            self.base_url = 'http+docker://ssh'
+            self.base_url = 'docker://ssh'
         else:
             # Use SSLAdapter for the ability to specify SSL version
             if isinstance(tls, TLSConfig):
@@ -309,9 +309,9 @@ class APIClient(
 
     def _get_raw_response_socket(self, response):
         self._raise_for_status(response)
-        if self.base_url == "http+docker://localnpipe":
+        if self.base_url == "docker://localnpipe":
             sock = response.raw._fp.fp.raw.sock
-        elif self.base_url.startswith('http+docker://ssh'):
+        elif self.base_url.startswith('docker://ssh'):
             sock = response.raw._fp.fp.channel
         elif six.PY3:
             sock = response.raw._fp.fp.raw

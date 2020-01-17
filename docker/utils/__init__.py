@@ -8,6 +8,7 @@ from .utils import (
     create_host_config, parse_bytes, parse_env_file, version_lt,
     version_gte, decode_json_header, split_command, create_ipam_config,
     create_ipam_pool, parse_devices, normalize_links, convert_service_networks,
-    format_environment, format_extra_hosts
+    format_environment, format_extra_hosts,
 )
+from .config import find_config_file as find_docker_config_file
 

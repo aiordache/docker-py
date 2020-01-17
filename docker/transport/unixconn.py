@@ -78,7 +78,7 @@ class UnixHTTPAdapter(BaseHTTPAdapter):
 
     def __init__(self, socket_url, timeout=60,
                  pool_connections=constants.DEFAULT_NUM_POOLS):
-        socket_path = socket_url.replace('http+unix://', '')
+        socket_path = socket_url.replace('unix://', '')
         if not socket_path.startswith('/'):
             socket_path = '/' + socket_path
         self.socket_path = socket_path

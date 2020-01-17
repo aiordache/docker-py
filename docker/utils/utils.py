@@ -12,22 +12,13 @@ import six
 from .. import errors
 from .. import tls
 
+from ..constants import DEFAULT_UNIX_SOCKET, DEFAULT_NPIPE, DEFAULT_HTTP_HOST, BYTE_UNITS
+
 if six.PY2:
     from urllib import splitnport
     from urlparse import urlparse
 else:
     from urllib.parse import splitnport, urlparse
-
-DEFAULT_HTTP_HOST = "127.0.0.1"
-DEFAULT_UNIX_SOCKET = "http+unix:///var/run/docker.sock"
-DEFAULT_NPIPE = 'npipe:////./pipe/docker_engine'
-
-BYTE_UNITS = {
-    'b': 1,
-    'k': 1024,
-    'm': 1024 * 1024,
-    'g': 1024 * 1024 * 1024
-}
 
 
 def create_ipam_pool(*args, **kwargs):
@@ -242,8 +233,6 @@ def parse_host(addr, is_win32=False, tls=False):
     if proto == 'http' or proto == 'https':
         tls = proto == 'https'
         proto = 'tcp'
-    elif proto == 'http+unix':
-        proto = 'unix'
 
     if proto not in ('tcp', 'unix', 'npipe', 'ssh'):
         raise errors.DockerException(
@@ -295,10 +284,8 @@ def parse_host(addr, is_win32=False, tls=False):
     # Rewrite schemes to fit library internals (requests adapters)
     if proto == 'tcp':
         proto = 'http{}'.format('s' if tls else '')
-    elif proto == 'unix':
-        proto = 'http+unix'
-
-    if proto in ('http+unix', 'npipe'):
+    
+    if proto in ('unix', 'npipe'):
         return "{}://{}".format(proto, path).rstrip('/')
     return '{0}://{1}:{2}{3}'.format(proto, host, port, path).rstrip('/')
 
