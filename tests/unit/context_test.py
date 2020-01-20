@@ -1,47 +1,30 @@
-import json, os, sys
 import unittest
 import docker
-from docker.context import ContextAPI, Context, config
-import six
-
 import pytest
+from docker.constants import DEFAULT_UNIX_SOCKET
+from docker.constants import DEFAULT_NPIPE
+from docker.constants import IS_WINDOWS_PLATFORM
+from docker.context import ContextAPI, Context
 
-from functools import wraps
-
-def windows(fn):
-    @wraps(fn)
-    def func(*args, **kwargs): 
-        if sys.platform == "win32":
-            fn(*args, **kwargs)
-    return func
-
-def linux(fn):
-    @wraps(fn)
-    def func(*args, **kwargs): 
-        if sys.platform != "win32":
-            fn(*args, **kwargs)
-    return func
 
 class BaseContextTest(unittest.TestCase):
-    @linux
+    @pytest.mark.skipif(
+        IS_WINDOWS_PLATFORM, reason='Linux specific path check'
+    )
     def test_url_compatibility_on_linux(self):
         c = Context("test")
-        assert c.Host == "unix:///var/run/docker.sock"
+        assert c.Host == DEFAULT_UNIX_SOCKET.strip("http+")
 
-    @windows
+    @pytest.mark.skipif(
+        not IS_WINDOWS_PLATFORM, reason='Windows specific path check'
+    )
     def test_url_compatibility_on_windows(self):
         c = Context("test")
-        assert c.Host == "npipe:////./pipe/docker_engine"
+        assert c.Host == DEFAULT_NPIPE
 
     def test_fail_on_default_context_create(self):
-        failed = False
-        try:
+        with pytest.raises(docker.errors.ContextException):
             ContextAPI.create_context("default")
-        except docker.errors.ContextException as err:
-            assert '"default" is a reserved context name' in err.msg
-            failed = True
-
-        assert failed is True
 
     def test_default_in_context_list(self):
         found = False
@@ -50,9 +33,13 @@ class BaseContextTest(unittest.TestCase):
             if c.Name == "default":
                 found = True
         assert found is True
-    
+
+    def test_get_current_context(self):
+        assert ContextAPI.get_current_context().Name == "default"
+
     def test_context_inspect_without_params(self):
         ctx = ContextAPI.inspect_context()
         assert ctx["Name"] == "default"
         assert ctx["Metadata"]["StackOrchestrator"] == "swarm"
-        assert ctx["Endpoints"]["docker"]["Host"] in ["unix:///var/run/docker.sock", "npipe:////./pipe/docker_engine"]
+        assert ctx["Endpoints"]["docker"]["Host"] in [
+            DEFAULT_NPIPE, DEFAULT_UNIX_SOCKET.strip("http+")]

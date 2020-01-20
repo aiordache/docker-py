@@ -11,8 +11,10 @@ import six
 
 from .. import errors
 from .. import tls
-
-from ..constants import DEFAULT_UNIX_SOCKET, DEFAULT_NPIPE, DEFAULT_HTTP_HOST, BYTE_UNITS
+from ..constants import DEFAULT_HTTP_HOST
+from ..constants import DEFAULT_UNIX_SOCKET
+from ..constants import DEFAULT_NPIPE
+from ..constants import BYTE_UNITS
 
 if six.PY2:
     from urllib import splitnport
@@ -233,6 +235,8 @@ def parse_host(addr, is_win32=False, tls=False):
     if proto == 'http' or proto == 'https':
         tls = proto == 'https'
         proto = 'tcp'
+    elif proto == 'http+unix':
+        proto = 'unix'
 
     if proto not in ('tcp', 'unix', 'npipe', 'ssh'):
         raise errors.DockerException(
@@ -284,8 +288,10 @@ def parse_host(addr, is_win32=False, tls=False):
     # Rewrite schemes to fit library internals (requests adapters)
     if proto == 'tcp':
         proto = 'http{}'.format('s' if tls else '')
-    
-    if proto in ('unix', 'npipe'):
+    elif proto == 'unix':
+        proto = 'http+unix'
+
+    if proto in ('http+unix', 'npipe'):
         return "{}://{}".format(proto, path).rstrip('/')
     return '{0}://{1}:{2}{3}'.format(proto, host, port, path).rstrip('/')
 

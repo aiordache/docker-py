@@ -289,8 +289,8 @@ class ParseHostTest(unittest.TestCase):
             'tcp://:7777': 'http://127.0.0.1:7777',
             'http://:7777': 'http://127.0.0.1:7777',
             'https://kokia.jp:2375': 'https://kokia.jp:2375',
-            'unix:///var/run/docker.sock': 'unix:///var/run/docker.sock',
-            'unix://': 'unix:///var/run/docker.sock',
+            'unix:///var/run/docker.sock': 'http+unix:///var/run/docker.sock',
+            'unix://': 'http+unix:///var/run/docker.sock',
             '12.234.45.127:2375/docker/engine': (
                 'http://12.234.45.127:2375/docker/engine'
             ),
@@ -316,7 +316,7 @@ class ParseHostTest(unittest.TestCase):
             assert parse_host(host, None) == expected
 
     def test_parse_host_empty_value(self):
-        unix_socket = 'unix:///var/run/docker.sock'
+        unix_socket = 'http+unix:///var/run/docker.sock'
         npipe = 'npipe:////./pipe/docker_engine'
 
         for val in [None, '']:

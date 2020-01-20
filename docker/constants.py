@@ -1,4 +1,4 @@
-import sys, os
+import sys
 from .version import version
 
 DEFAULT_DOCKER_API_VERSION = '1.35'
@@ -10,7 +10,7 @@ CONTAINER_LIMITS_KEYS = [
 ]
 
 DEFAULT_HTTP_HOST = "127.0.0.1"
-DEFAULT_UNIX_SOCKET = "unix:///var/run/docker.sock"
+DEFAULT_UNIX_SOCKET = "http+unix:///var/run/docker.sock"
 DEFAULT_NPIPE = 'npipe:////./pipe/docker_engine'
 
 BYTE_UNITS = {
@@ -19,6 +19,7 @@ BYTE_UNITS = {
     'm': 1024 * 1024,
     'g': 1024 * 1024 * 1024
 }
+
 
 INSECURE_REGISTRY_DEPRECATION_WARNING = \
     'The `insecure_registry` argument to {} ' \
@@ -39,7 +40,3 @@ DEFAULT_DATA_CHUNK_SIZE = 1024 * 2048
 
 DEFAULT_SWARM_ADDR_POOL = ['10.0.0.0/8']
 DEFAULT_SWARM_SUBNET_SIZE = 24
-
-
-DOCKER_CONFIG_FILENAME = os.path.join('.docker', 'config.json')
-LEGACY_DOCKER_CONFIG_FILENAME = '.dockercfg'

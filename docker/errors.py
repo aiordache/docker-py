@@ -172,6 +172,7 @@ class MissingContextParameter(DockerException):
     def __str__(self):
         return ("missing parameter: {}".format(self.param))
 
+
 class ContextAlreadyExists(DockerException):
     def __init__(self, name):
         self.name = name
@@ -179,12 +180,14 @@ class ContextAlreadyExists(DockerException):
     def __str__(self):
         return ("context {} already exists".format(self.name))
 
+
 class ContextException(DockerException):
     def __init__(self, msg):
         self.msg = msg
 
     def __str__(self):
         return (self.msg)
+
 
 class ContextNotFound(DockerException):
     def __init__(self, name):

@@ -278,7 +278,7 @@ class DockerApiTest(BaseAPIClientTest):
         )
 
     def _socket_path_for_client_session(self, client):
-        socket_adapter = client.get_adapter('docker://')
+        socket_adapter = client.get_adapter('http+docker://')
         return socket_adapter.socket_path
 
     def test_url_compatibility_unix(self):
@@ -291,6 +291,10 @@ class DockerApiTest(BaseAPIClientTest):
 
         assert self._socket_path_for_client_session(c) == '/socket'
 
+    def test_url_compatibility_http_unix_triple_slash(self):
+        c = APIClient(base_url="http+unix:///socket")
+
+        assert self._socket_path_for_client_session(c) == '/socket'
 
     def test_url_compatibility_http(self):
         c = APIClient(base_url="http://hostname:1234")
@@ -443,7 +447,7 @@ class UnixSocketStreamTest(unittest.TestCase):
             b'\r\n'
         ) + b'\r\n'.join(lines)
 
-        with APIClient(base_url="unix://" + self.socket_file) as client:
+        with APIClient(base_url="http+unix://" + self.socket_file) as client:
             for i in range(5):
                 try:
                     stream = client.build(
