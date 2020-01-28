@@ -58,6 +58,9 @@ class ContextAPI(object):
             raise errors.ContextAlreadyExists(name)
 
         ctx = Context(name, orchestrator)
+        if tls_cfg and not endpoint:
+            ctx.set_endpoint(tls_cfg=tls_cfg)
+
         if endpoint:
             ctx.set_endpoint(
                 endpoint, host, tls_cfg,

@@ -26,10 +26,8 @@ class Context:
         self.tls_path = "IN MEMORY"
 
     def set_endpoint(
-            self, name, host=None, tls_cfg=None, skip_tls_verify=False,
-            def_namespace=None):
-        if not name:
-            return
+            self, name="docker", host=None, tls_cfg=None,
+            skip_tls_verify=False, def_namespace=None):
         self.endpoints[name] = {
             "Host": get_context_host(host),
             "SkipTLSVerify": skip_tls_verify
@@ -165,6 +163,15 @@ class Context:
             },
             "Endpoints": self.endpoints
         }
+
+    @property
+    def TLSConfig(self):
+        key = self.orchestrator
+        if key == "swarm":
+            key = "docker"
+        if key in self.tls_cfg.keys():
+            return self.tls_cfg[key]
+        return None
 
     @property
     def TLSMaterial(self):
