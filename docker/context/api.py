@@ -172,7 +172,7 @@ class ContextAPI(object):
             raise errors.ContextNotFound(name)
         if name == get_current_context_name():
             write_context_name_to_docker_config(None)
-        ctx.remove()
+        ctx.cleanup()
 
     @classmethod
     def inspect_context(cls, name="default"):
