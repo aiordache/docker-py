@@ -2,6 +2,7 @@ import os
 import json
 from shutil import copyfile, rmtree
 from docker.tls import TLSConfig
+from docker.errors import ContextException
 from docker.context.config import get_meta_dir
 from docker.context.config import get_meta_file
 from docker.context.config import get_tls_dir
@@ -10,17 +11,31 @@ from docker.context.config import get_context_host
 
 class Context:
     """A context."""
-    def __init__(self, name, orchestrator="swarm", endpoints=None):
+    def __init__(self, name, orchestrator="swarm", host=None, endpoints=None):
         if not name:
             raise Exception("Name not provided")
         self.name = name
         self.orchestrator = orchestrator
-        self.endpoints = {
-            "docker": {
-                "Host": get_context_host(),
-                "SkipTLSVerify": False
+        if not endpoints:
+            default_endpoint = "docker" if (
+                orchestrator == "swarm"
+                ) else orchestrator
+            self.endpoints = {
+                default_endpoint: {
+                    "Host": get_context_host(host),
+                    "SkipTLSVerify": False
+                }
             }
-        } if not endpoints else endpoints
+        else:
+            for k, v in endpoints.items():
+                ekeys = v.keys()
+                for param in ["Host", "SkipTLSVerify"]:
+                    if param not in ekeys:
+                        raise ContextException(
+                            "Missing parameter {} from endpoint {}".format(
+                                param, k))
+            self.endpoints = endpoints
+
         self.tls_cfg = {}
         self.meta_path = "IN MEMORY"
         self.tls_path = "IN MEMORY"
@@ -45,7 +60,7 @@ class Context:
     def load_context(cls, name):
         name, orchestrator, endpoints = Context.load_meta(name)
         if name:
-            instance = cls(name, orchestrator, endpoints)
+            instance = cls(name, orchestrator, endpoints=endpoints)
             instance.load_certs()
             instance.meta_path = get_meta_dir(name)
             return instance
@@ -122,7 +137,7 @@ class Context:
         self.meta_path = get_meta_dir(self.name)
         self.tls_path = get_tls_dir(self.name)
 
-    def cleanup(self):
+    def remove(self):
         if os.path.isdir(self.meta_path):
             rmtree(self.meta_path)
         if os.path.isdir(self.tls_path):

@@ -26,6 +26,29 @@ def get_current_context_name():
     return name
 
 
+def write_context_name_to_docker_config(name=None):
+    if name == 'default':
+        name = None
+    docker_cfg_path = find_config_file()
+    config = {}
+    if docker_cfg_path:
+        try:
+            config = json.load(open(docker_cfg_path, "r"))
+        except Exception as e:
+            return e
+    current_context = config.get("currentContext", None)
+    if current_context and not name:
+        del config["currentContext"]
+    elif name:
+        config["currentContext"] = name
+    else:
+        return
+    try:
+        json.dump(config, open(docker_cfg_path, "w"), indent=4)
+    except Exception as e:
+        return e
+
+
 def get_context_id(name):
     return hashlib.sha256(name.encode('utf-8')).hexdigest()
 

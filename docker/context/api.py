@@ -2,9 +2,10 @@ import json
 import os
 
 from docker import errors
-from docker.context.config import (
-    METADATA_DIR, METAFILE, get_current_context_name
-)
+from docker.context.config import METADATA_DIR
+from docker.context.config import METAFILE
+from docker.context.config import get_current_context_name
+from docker.context.config import write_context_name_to_docker_config
 from docker.context import Context
 
 
@@ -17,8 +18,8 @@ class ContextAPI(object):
 
     @classmethod
     def create_context(
-            cls, name, orchestrator="swarm", endpoint=None, host=None,
-            tls_cfg=None, default_namespace=None, skip_tls_verify=False):
+            cls, name, orchestrator="swarm", host=None, tls_cfg=None,
+            default_namespace=None, skip_tls_verify=False):
         """Creates a new context.
         Returns:
             (Context): a Context object.
@@ -56,18 +57,42 @@ class ContextAPI(object):
         ctx = Context.load_context(name)
         if ctx:
             raise errors.ContextAlreadyExists(name)
-
+        endpoint = "docker" if orchestrator == "swarm" else orchestrator
         ctx = Context(name, orchestrator)
-        if tls_cfg and not endpoint:
-            ctx.set_endpoint(tls_cfg=tls_cfg)
-
-        if endpoint:
-            ctx.set_endpoint(
-                endpoint, host, tls_cfg,
-                skip_tls_verify=skip_tls_verify,
-                def_namespace=default_namespace)
+        ctx.set_endpoint(
+            endpoint, host, tls_cfg,
+            skip_tls_verify=skip_tls_verify,
+            def_namespace=default_namespace)
         ctx.save()
         return ctx
+
+    @classmethod
+    def get_context(cls, name="default"):
+        """Retrieves a context object.
+        Args:
+            name (str): The name of the context
+
+        Example:
+
+        >>> from docker.context import ContextAPI
+        >>> ctx = ContextAPI..get_context(name='test')
+        >>> print(ctx.Metadata)
+        {
+            "Name": "test",
+            "Metadata": {
+                "StackOrchestrator": "swarm"
+            },
+            "Endpoints": {
+                "docker": {
+                "Host": "unix:///var/run/docker.sock",
+                "SkipTLSVerify": false
+                }
+            }
+        }
+        """
+        if not name or name == "default":
+            return ContextAPI.DEFAULT_CONTEXT
+        return Context.load_context(name)
 
     @classmethod
     def contexts(cls):
@@ -98,12 +123,23 @@ class ContextAPI(object):
 
     @classmethod
     def get_current_context(cls):
-        """Context list.
+        """Get current context.
         Returns:
             (Context): current context object.
         """
         name = get_current_context_name()
         return ContextAPI.get_context(name)
+
+    @classmethod
+    def set_current_context(cls, name="default"):
+        ctx = ContextAPI.get_context(name)
+        if not ctx:
+            raise errors.ContextNotFound(name)
+
+        err = write_context_name_to_docker_config(name)
+        if err:
+            raise errors.ContextException(
+                'Failed to set current context: {}'.format(err))
 
     @classmethod
     def remove_context(cls, name):
@@ -134,36 +170,9 @@ class ContextAPI(object):
         ctx = Context.load_context(name)
         if not ctx:
             raise errors.ContextNotFound(name)
-
-        ctx.cleanup()
-
-    @classmethod
-    def get_context(cls, name="default"):
-        """Retrieves a context object.
-        Args:
-            name (str): The name of the context
-
-        Example:
-
-        >>> from docker.context import ContextAPI
-        >>> ctx = ContextAPI..get_context(name='test')
-        >>> print(ctx.Metadata)
-        {
-            "Name": "test",
-            "Metadata": {
-                "StackOrchestrator": "swarm"
-            },
-            "Endpoints": {
-                "docker": {
-                "Host": "unix:///var/run/docker.sock",
-                "SkipTLSVerify": false
-                }
-            }
-        }
-        """
-        if not name or name == "default":
-            return ContextAPI.DEFAULT_CONTEXT
-        return Context.load_context(name)
+        if name == get_current_context_name():
+            write_context_name_to_docker_config(None)
+        ctx.remove()
 
     @classmethod
     def inspect_context(cls, name="default"):
