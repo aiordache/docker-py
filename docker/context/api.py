@@ -67,7 +67,7 @@ class ContextAPI(object):
         return ctx
 
     @classmethod
-    def get_context(cls, name="default"):
+    def get_context(cls, name=None):
         """Retrieves a context object.
         Args:
             name (str): The name of the context
@@ -75,7 +75,7 @@ class ContextAPI(object):
         Example:
 
         >>> from docker.context import ContextAPI
-        >>> ctx = ContextAPI..get_context(name='test')
+        >>> ctx = ContextAPI.get_context(name='test')
         >>> print(ctx.Metadata)
         {
             "Name": "test",
@@ -90,7 +90,9 @@ class ContextAPI(object):
             }
         }
         """
-        if not name or name == "default":
+        if not name:
+            name = get_current_context_name()
+        if name == "default":
             return ContextAPI.DEFAULT_CONTEXT
         return Context.load_context(name)
 
@@ -127,8 +129,7 @@ class ContextAPI(object):
         Returns:
             (Context): current context object.
         """
-        name = get_current_context_name()
-        return ContextAPI.get_context(name)
+        return ContextAPI.get_context()
 
     @classmethod
     def set_current_context(cls, name="default"):
@@ -172,7 +173,7 @@ class ContextAPI(object):
             raise errors.ContextNotFound(name)
         if name == get_current_context_name():
             write_context_name_to_docker_config(None)
-        ctx.cleanup()
+        ctx.remove()
 
     @classmethod
     def inspect_context(cls, name="default"):

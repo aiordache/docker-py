@@ -58,16 +58,16 @@ class Context:
 
     @classmethod
     def load_context(cls, name):
-        name, orchestrator, endpoints = Context.load_meta(name)
+        name, orchestrator, endpoints = Context._load_meta(name)
         if name:
             instance = cls(name, orchestrator, endpoints=endpoints)
-            instance.load_certs()
+            instance._load_certs()
             instance.meta_path = get_meta_dir(name)
             return instance
         return None
 
     @classmethod
-    def load_meta(cls, name):
+    def _load_meta(cls, name):
         metadata = {}
         meta_file = get_meta_file(name)
         if os.path.isfile(meta_file):
@@ -88,7 +88,7 @@ class Context:
                 metadata["Endpoints"])
         return None, None, None
 
-    def load_certs(self):
+    def _load_certs(self):
         certs = {}
         tls_dir = get_tls_dir(self.name)
         for endpoint in self.endpoints.keys():
