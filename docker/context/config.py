@@ -7,10 +7,6 @@ from docker.constants import IS_WINDOWS_PLATFORM
 from docker.constants import DEFAULT_UNIX_SOCKET
 from docker.utils.config import find_config_file
 
-CONTEXTS_DIR = os.path.join(os.path.dirname(
-    find_config_file() or ""), "contexts")
-METADATA_DIR = os.path.join(CONTEXTS_DIR, "meta")
-TLS_DIR = os.path.join(CONTEXTS_DIR, "tls")
 METAFILE = "meta.json"
 
 
@@ -20,7 +16,7 @@ def get_current_context_name():
     if docker_cfg_path:
         try:
             cfg = open(docker_cfg_path, "r")
-            name = json.load(cfg).get("currentContext")
+            name = json.load(cfg).get("currentContext", "default")
         except Exception:
             return "default"
     return name
@@ -53,16 +49,26 @@ def get_context_id(name):
     return hashlib.sha256(name.encode('utf-8')).hexdigest()
 
 
-def get_meta_dir(name):
-    return os.path.join(METADATA_DIR, get_context_id(name))
+def get_context_dir():
+    return os.path.join(os.path.dirname(find_config_file() or ""), "contexts")
+
+
+def get_meta_dir(name = None):
+    meta_dir = os.path.join(get_context_dir(), "meta")
+    if name:
+        return os.path.join(meta_dir, get_context_id(name))
+    return meta_dir
 
 
 def get_meta_file(name):
     return os.path.join(get_meta_dir(name), METAFILE)
 
 
-def get_tls_dir(name, endpoint=""):
-    return os.path.join(TLS_DIR, get_context_id(name), endpoint)
+def get_tls_dir(name=None, endpoint=""):
+    context_dir = get_context_dir()
+    if name:
+        return os.path.join(context_dir, "tls", get_context_id(name), endpoint)
+    return os.path.join(context_dir, "tls")
 
 
 def get_context_host(path=None):

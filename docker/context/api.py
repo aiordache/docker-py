@@ -2,7 +2,7 @@ import json
 import os
 
 from docker import errors
-from docker.context.config import METADATA_DIR
+from docker.context.config import get_meta_dir
 from docker.context.config import METAFILE
 from docker.context.config import get_current_context_name
 from docker.context.config import write_context_name_to_docker_config
@@ -106,7 +106,7 @@ class ContextAPI(object):
                 If the server returns an error.
         """
         names = []
-        for dirname, dirnames, fnames in os.walk(METADATA_DIR):
+        for dirname, dirnames, fnames in os.walk(get_meta_dir()):
             for filename in fnames + dirnames:
                 if filename == METAFILE:
                     try:
