@@ -53,7 +53,7 @@ def get_context_dir():
     return os.path.join(os.path.dirname(find_config_file() or ""), "contexts")
 
 
-def get_meta_dir(name = None):
+def get_meta_dir(name=None):
     meta_dir = os.path.join(get_context_dir(), "meta")
     if name:
         return os.path.join(meta_dir, get_context_id(name))

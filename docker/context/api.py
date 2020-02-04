@@ -93,7 +93,7 @@ class ContextAPI(object):
         if not name:
             name = get_current_context_name()
         if name == "default":
-            return ContextAPI.DEFAULT_CONTEXT
+            return cls.DEFAULT_CONTEXT
         return Context.load_context(name)
 
     @classmethod
@@ -118,7 +118,7 @@ class ContextAPI(object):
                             "Failed to load metafile {}: {}".format(
                                 filename, e))
 
-        contexts = [ContextAPI.DEFAULT_CONTEXT]
+        contexts = [cls.DEFAULT_CONTEXT]
         for name in names:
             contexts.append(Context.load_context(name))
         return contexts
@@ -129,11 +129,11 @@ class ContextAPI(object):
         Returns:
             (Context): current context object.
         """
-        return ContextAPI.get_context()
+        return cls.get_context()
 
     @classmethod
     def set_current_context(cls, name="default"):
-        ctx = ContextAPI.get_context(name)
+        ctx = cls.get_context(name)
         if not ctx:
             raise errors.ContextNotFound(name)
 
@@ -197,7 +197,7 @@ class ContextAPI(object):
         if not name:
             raise errors.MissingContextParameter("name")
         if name == "default":
-            return ContextAPI.DEFAULT_CONTEXT()
+            return cls.DEFAULT_CONTEXT()
         ctx = Context.load_context(name)
         if not ctx:
             raise errors.ContextNotFound(name)
