@@ -85,7 +85,7 @@ class SwarmApiMixin(object):
     def init_swarm(self, advertise_addr=None, listen_addr='0.0.0.0:2377',
                    force_new_cluster=False, swarm_spec=None,
                    default_addr_pool=None, subnet_size=None,
-                   data_path_addr=None):
+                   data_path_addr=None, availability = None):
         """
         Initialize a new Swarm using the current connected engine as the first
         node.
@@ -118,6 +118,9 @@ class SwarmApiMixin(object):
                 networks created from the default subnet pool. Default: None
             data_path_addr (string): Address or interface to use for data path
                 traffic. For example, 192.168.1.1, or an interface, like eth0.
+            availability (string): Specifies the availability of the node at
+                the time the node joins a master. Possiblle availability value
+                are `active`, `pause`, or `drain`.
 
         Returns:
             (str): The ID of the created node.
@@ -157,7 +160,8 @@ class SwarmApiMixin(object):
             'ForceNewCluster': force_new_cluster,
             'Spec': swarm_spec,
         }
-
+        if availability:
+            data['Availability'] = availability
         if data_path_addr is not None:
             if utils.version_lt(self._version, '1.30'):
                 raise errors.InvalidVersion(
@@ -205,7 +209,7 @@ class SwarmApiMixin(object):
 
     @utils.minimum_version('1.24')
     def join_swarm(self, remote_addrs, join_token, listen_addr='0.0.0.0:2377',
-                   advertise_addr=None, data_path_addr=None):
+                   advertise_addr=None, data_path_addr=None, availability=None):
         """
         Make this Engine join a swarm that has already been created.
 
@@ -226,6 +230,9 @@ class SwarmApiMixin(object):
                 detected when possible. Default: ``None``
             data_path_addr (string): Address or interface to use for data path
                 traffic. For example, 192.168.1.1, or an interface, like eth0.
+            availability (string): Specifies the availability of the node at
+                the time the node joins a master. Possiblle availability value
+                are `active`, `pause`, or `drain`.
 
         Returns:
             ``True`` if the request went through.
@@ -240,7 +247,8 @@ class SwarmApiMixin(object):
             'JoinToken': join_token,
             'AdvertiseAddr': advertise_addr,
         }
-
+        if availability:
+            data['Availability'] = availability
         if data_path_addr is not None:
             if utils.version_lt(self._version, '1.30'):
                 raise errors.InvalidVersion(
